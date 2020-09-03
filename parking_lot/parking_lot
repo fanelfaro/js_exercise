@@ -1,0 +1,260 @@
+#!/usr/bin/env node
+
+const fs = require('fs')
+const { count } = require('console')
+
+
+// usage represents the help guide
+const usage = function() {
+  const usageText = `
+  usage:
+    ./parking_lot
+    ./parking_lot <filename>
+
+    jika tidak menyertakan filename maka akan menjalankan cli
+  `
+
+  console.log(usageText)
+}
+
+// used to log errors to the console
+function errorLog(error) {
+  console.log(errorLog)
+}
+
+// print something
+// const cout = function (argu){
+//     return process.stdout.write(argu)
+// }
+
+// command functions
+function createParkingLot(qt_lot){
+    const lot = {
+        regnumber: "",
+        color: "",
+        available: true
+    }
+    var lots = {}
+    if(qt_lot>=1){
+        for(i = 1; i <= qt_lot; i++){
+            lots[i]=lot
+        }
+    }
+    const jsonString = JSON.stringify(lots, null, 2)
+    fs.writeFile('./lots_record.json', jsonString, err => {
+        if (err) {
+            console.log('Error writing file '+ err + '\n')
+        } else {
+            console.log('Created a parking lot with ' + qt_lot + ' slots\n')
+        }
+    })
+}
+
+function jsonReader(filePath, cb) {
+    fs.readFile(filePath, (err, fileData) => {
+        if (err) {
+            return cb && cb(err)
+        }
+        try {
+            const object = JSON.parse(fileData)
+            return cb && cb(null, object)
+        } catch(err) {
+            return cb && cb(err)
+        }
+    })
+}
+
+function park(regnumb, clor){
+    jsonReader('./lots_record.json', (err, lots) => {
+        if (err) {
+            console.log('Error reading file:',err)
+            return
+        }
+        var last_lot = 0;
+        for (var lot in lots){
+            if(lots[lot].available){
+                lots[lot].available = false
+                lots[lot].regnumber = regnumb
+                lots[lot].color = clor
+                last_lot = lot
+                break
+            }
+        }
+        if(last_lot!=0){
+            fs.writeFile('./lots_record.json', JSON.stringify(lots, null, 2), (err) => {
+                    if (err) {
+                        console.log('Error writing file:', err)
+                    }else{
+                        console.log('Allocated slot number: ', last_lot)
+                    }
+                })
+        }else{
+            console.log("Sorry, parking lot is full")
+        }
+    })
+}
+
+function leave(num_lot){
+    jsonReader('./lots_record.json', (err, lots) => {
+        if (err) {
+            console.log('Error reading file:',err)
+            return
+        }
+
+        lots[num_lot].regnumber = ""
+        lots[num_lot].color = ""
+        lots[num_lot].available = true
+        
+        fs.writeFile('./lots_record.json', JSON.stringify(lots, null, 2), (err) => {
+            if (err) {
+                console.log('Error writing file:', err)
+            }else{
+                console.log('Slot number '+ num_lot +' is free')
+            }
+        })
+    })
+}
+
+function status(){
+    jsonReader('./lots_record.json', (err, lots) => {
+        if (err) {
+            console.log('Error reading file:',err)
+            return
+        }
+
+        console.log("Slot No.\tRegistration No.\tColour")
+        for (var i in lots){
+            if(!lots[i].available){
+                console.log(i + '\t\t' + lots[i].regnumber + "\t\t\t" + lots[i].color)
+            }
+        }
+    })
+}
+
+function regnumbByColor(color){
+    
+    jsonReader('./lots_record.json', (err, lots) => {
+        if (err) {
+            console.log('Error reading file:',err)
+            return
+        }
+        var result=[];
+        var count = 0;
+        for (var i in lots){
+            if(lots[i].color == color){
+                result.push(lots[i].regnumber)
+                count++
+            }
+        }
+        if(count>0){
+            console.log(result.join(', '))    
+        }else{
+            console.log("Not found")
+        }    
+    })
+}
+
+function slotnumbByColor(color){
+    
+    jsonReader('./lots_record.json', (err, lots) => {
+        if (err) {
+            console.log('Error reading file:',err)
+            return
+        }
+        var result=[];
+        var count = 0;
+        for (var i in lots){
+            if(lots[i].color == color){
+                result.push(i)
+                count++
+            }
+        }
+        if(count>0){
+            console.log(result.join(', '))    
+        }else{
+            console.log("Not found")
+        }
+    })
+}
+
+function slotnumbByReg(regnumb){
+    jsonReader('./lots_record.json', (err, lots) => {
+        if (err) {
+            console.log('Error reading file:',err)
+            return
+        }
+        var result=[];
+        var count = 0
+        for (var i in lots){
+            if(lots[i].regnumber == regnumb){
+                result.push(i)
+                count++
+            }
+        }
+        if(count>0){
+            console.log(result.join(', '))    
+        }else{
+            console.log("Not found")
+        }
+    })
+}
+
+// run command
+function run(argu){
+    cmd = argu.split(" ")
+    switch(cmd[0]){
+        case "cpl":
+            if(cmd[1]){
+                createParkingLot(cmd[1])
+            }
+            break
+        case "park":
+            if(cmd[1] && cmd[2]){
+                park(cmd[1], cmd[2])
+            }
+            break
+        case "leave":
+            if(cmd[1]){
+                leave(cmd[1])
+            }
+            break
+        case "status":
+            status()
+            break
+        case "regbycolor":
+            if(cmd[1]){
+                regnumbByColor(cmd[1])
+            }
+            break
+        case "slotbycolor":
+            if(cmd[1]){
+                slotnumbByColor(cmd[1])
+            }
+            break
+        case "slotbyreg":
+            if(cmd[1]){
+                slotnumbByReg(cmd[1])
+            }
+            break
+        default:
+            errorLog('invalid command passed')
+            usage()
+        }
+    return cmd
+}
+
+
+
+const args = process.argv.slice(2)
+
+var filename;
+// we make sure the length of the arguments is exactly one
+if (args.length > 1) {
+  errorLog(`only one argument can be accepted`)
+  usage()
+}else{
+    filename = args[0]
+    process.stdin.on('data', function(data){
+        run(data.toString().trim())
+    })
+}
