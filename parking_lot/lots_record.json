@@ -1,27 +1,17 @@
 {
   "1": {
-    "regnumber": "123321",
-    "color": "blue",
-    "available": false
+    "regnumber": "",
+    "color": "",
+    "available": true
   },
   "2": {
-    "regnumber": "456545",
-    "color": "red",
-    "available": false
+    "regnumber": "",
+    "color": "",
+    "available": true
   },
   "3": {
-    "regnumber": "987789",
-    "color": "yellow",
-    "available": false
-  },
-  "4": {
-    "regnumber": "333444",
-    "color": "blue",
-    "available": false
-  },
-  "5": {
-    "regnumber": "444444",
-    "color": "pink",
-    "available": false
+    "regnumber": "",
+    "color": "",
+    "available": true
   }
 }
